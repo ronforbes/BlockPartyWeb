@@ -1,0 +1,50 @@
+:root {
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  overflow: hidden;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background: radial-gradient(circle at top, #1f2346, #0e1227 55%, #040714);
+  color: #f0f4ff;
+}
+
+canvas {
+  display: block;
+}
+
+#info {
+  position: fixed;
+  top: 1.25rem;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.75rem 1.5rem;
+  background: rgba(10, 14, 28, 0.7);
+  border: 1px solid rgba(84, 105, 212, 0.4);
+  border-radius: 1rem;
+  text-align: center;
+  backdrop-filter: blur(4px);
+  pointer-events: none;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+}
+
+#info h1 {
+  margin: 0 0 0.5rem;
+  font-size: 1.4rem;
+  letter-spacing: 0.04em;
+}
+
+#info p {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+#info strong {
+  color: #73d8ff;
+}
