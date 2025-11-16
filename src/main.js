@@ -94,6 +94,10 @@ const cellCenters = Array.from({ length: GRID_ROWS }, (_, y) =>
   Array.from({ length: GRID_COLUMNS }, (_, x) => computeCellCenter(x, y))
 );
 
+// Animation system - 4 frames at 60 FPS = ~67ms (Tetris Attack timing)
+const SWAP_DURATION = 4 / 60;
+const activeAnimations = [];
+
 function computeCellCenter(x, y) {
   const offsetX = (GRID_COLUMNS - 1) / 2;
   const offsetY = (GRID_ROWS - 1) / 2;
@@ -367,7 +371,49 @@ function moveCursor(deltaX, deltaY) {
 }
 
 function swapCursorBlocks() {
-  grid.swap(cursorX, cursorY, cursorX + 1, cursorY);
+  // Prevent swapping while animations are in progress
+  if (activeAnimations.length > 0) {
+    return;
+  }
+
+  const x1 = cursorX;
+  const y1 = cursorY;
+  const x2 = cursorX + 1;
+  const y2 = cursorY;
+
+  // Swap the grid data
+  grid.swap(x1, y1, x2, y2);
+
+  // Create swap animations
+  const block1 = blockMeshes[y1][x1];
+  const block2 = blockMeshes[y2][x2];
+  const startTime = performance.now() / 1000;
+
+  if (block1 && block1.visible) {
+    activeAnimations.push({
+      block: block1,
+      startPos: cellCenters[y1][x1].clone(),
+      endPos: cellCenters[y2][x2].clone(),
+      startTime,
+      duration: SWAP_DURATION,
+    });
+  }
+
+  if (block2 && block2.visible) {
+    activeAnimations.push({
+      block: block2,
+      startPos: cellCenters[y2][x2].clone(),
+      endPos: cellCenters[y1][x1].clone(),
+      startTime,
+      duration: SWAP_DURATION,
+    });
+  }
+
+  // Swap the mesh references
+  const tempMesh = blockMeshes[y1][x1];
+  blockMeshes[y1][x1] = blockMeshes[y2][x2];
+  blockMeshes[y2][x2] = tempMesh;
+
   updateBlocks();
 }
 
@@ -390,7 +436,26 @@ function onWindowResize() {
   updateCameraFrustum();
 }
 
+function updateAnimations() {
+  const currentTime = performance.now() / 1000;
+
+  for (let i = activeAnimations.length - 1; i >= 0; i -= 1) {
+    const anim = activeAnimations[i];
+    const elapsed = currentTime - anim.startTime;
+    const progress = Math.min(elapsed / anim.duration, 1);
+
+    // Linear interpolation from start to end position
+    anim.block.position.lerpVectors(anim.startPos, anim.endPos, progress);
+
+    // Remove completed animations
+    if (progress >= 1) {
+      activeAnimations.splice(i, 1);
+    }
+  }
+}
+
 function render() {
+  updateAnimations();
   renderer.render(scene, camera);
 }
 
